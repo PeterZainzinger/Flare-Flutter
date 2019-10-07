@@ -1,5 +1,6 @@
 import 'dart:math';
 import 'dart:typed_data';
+import 'package:flare_dart/actor.dart';
 import 'package:flare_flutter/flare_render_box.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -13,7 +14,7 @@ typedef void FlareCompletedCallback(String name);
 
 class FlareActor extends LeafRenderObjectWidget {
   /// Name of the Flare file to be loaded from the AssetBundle.
-  final String filename;
+  final FlareAnimationProvider provider;
 
   /// The name of the artboard to display.
   final String artboard;
@@ -59,7 +60,7 @@ class FlareActor extends LeafRenderObjectWidget {
   final bool sizeFromArtboard;
 
   const FlareActor(
-    this.filename, {
+    this.provider, {
     this.boundsNode,
     this.animation,
     this.fit = BoxFit.contain,
@@ -78,7 +79,7 @@ class FlareActor extends LeafRenderObjectWidget {
   RenderObject createRenderObject(BuildContext context) {
     return FlareActorRenderObject()
       ..assetBundle = DefaultAssetBundle.of(context)
-      ..filename = filename
+      ..provider= provider
       ..fit = fit
       ..alignment = alignment
       ..animationName = animation
@@ -98,7 +99,7 @@ class FlareActor extends LeafRenderObjectWidget {
       BuildContext context, covariant FlareActorRenderObject renderObject) {
     renderObject
       ..assetBundle = DefaultAssetBundle.of(context)
-      ..filename = filename
+      ..provider=  provider
       ..fit = fit
       ..alignment = alignment
       ..animationName = animation
@@ -121,17 +122,19 @@ class FlareAnimationLayer {
   String name;
   ActorAnimation animation;
   double time = 0.0, mix = 0.0, mixSeconds = 0.2;
+
   void apply(FlutterActorArtboard artboard) {
     animation.apply(time, artboard, mix);
   }
 
   double get duration => animation.duration;
+
   bool get isDone => time >= animation.duration;
 }
 
 class FlareActorRenderObject extends FlareRenderBox {
   Mat2D _lastControllerViewTransform;
-  String _filename;
+  FlareAnimationProvider _provider;
   String _artboardName;
   String _animationName;
   String _boundsNodeName;
@@ -142,6 +145,7 @@ class FlareActorRenderObject extends FlareRenderBox {
   FlutterActor _actor;
 
   String get artboardName => _artboardName;
+
   set artboardName(String name) {
     if (_artboardName == name) {
       return;
@@ -151,6 +155,7 @@ class FlareActorRenderObject extends FlareRenderBox {
   }
 
   bool get isPaused => _isPaused;
+
   set isPaused(bool value) {
     if (_isPaused == value) {
       return;
@@ -168,6 +173,7 @@ class FlareActorRenderObject extends FlareRenderBox {
   Color _color;
 
   Color get color => _color;
+
   set color(Color value) {
     if (value != _color) {
       _color = value;
@@ -186,6 +192,7 @@ class FlareActorRenderObject extends FlareRenderBox {
   }
 
   String get boundsNodeName => _boundsNodeName;
+
   set boundsNodeName(String value) {
     if (_boundsNodeName == value) {
       return;
@@ -212,6 +219,7 @@ class FlareActorRenderObject extends FlareRenderBox {
   }
 
   String get animationName => _animationName;
+
   set animationName(String value) {
     if (value != _animationName) {
       _animationName = value;
@@ -231,6 +239,7 @@ class FlareActorRenderObject extends FlareRenderBox {
   }
 
   FlareController get controller => _controller;
+
   set controller(FlareController c) {
     if (_controller != c) {
       _lastControllerViewTransform = c == null ? null : Mat2D();
@@ -248,14 +257,15 @@ class FlareActorRenderObject extends FlareRenderBox {
     _animationLayers.length = 0;
   }
 
-  String get filename => _filename;
-  set filename(String value) {
-    if (value == _filename) {
+  FlareAnimationProvider get provider => _provider;
+
+  set provider(FlareAnimationProvider value) {
+    if (value == _provider) {
       return;
     }
-    _filename = value;
+    _provider = value;
 
-    if (_filename == null) {
+    if (_provider == null) {
       markNeedsPaint();
     }
     // file will change, let's clear out old animations.
@@ -294,10 +304,10 @@ class FlareActorRenderObject extends FlareRenderBox {
 
   @override
   Future<void> load() async {
-    if (_filename == null) {
+    if ( _provider== null) {
       return;
     }
-    _actor = await loadFlare(_filename);
+    _actor = await loadFlare(_provider);
     if (_actor == null || _actor.artboard == null) {
       return;
     }
@@ -305,6 +315,7 @@ class FlareActorRenderObject extends FlareRenderBox {
   }
 
   FlareCompletedCallback get completed => _completedCallback;
+
   set completed(FlareCompletedCallback value) {
     if (_completedCallback != value) {
       _completedCallback = value;

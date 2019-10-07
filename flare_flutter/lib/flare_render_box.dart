@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'package:flare_dart/actor.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/scheduler.dart';
@@ -21,6 +22,7 @@ abstract class FlareRenderBox extends RenderBox {
   bool _useIntrinsicSize = false;
 
   bool get useIntrinsicSize => _useIntrinsicSize;
+
   set useIntrinsicSize(bool value) {
     if (_useIntrinsicSize == value) {
       return;
@@ -32,7 +34,9 @@ abstract class FlareRenderBox extends RenderBox {
   }
 
   Size _intrinsicSize;
+
   Size get intrinsicSize => _intrinsicSize;
+
   set intrinsicSize(Size value) {
     if (_intrinsicSize == value) {
       return;
@@ -44,6 +48,7 @@ abstract class FlareRenderBox extends RenderBox {
   }
 
   AssetBundle get assetBundle => _assetBundle;
+
   set assetBundle(AssetBundle value) {
     if (_assetBundle == value) {
       return;
@@ -57,6 +62,7 @@ abstract class FlareRenderBox extends RenderBox {
   bool get isPlaying;
 
   BoxFit get fit => _fit;
+
   set fit(BoxFit value) {
     if (value != _fit) {
       _fit = value;
@@ -76,6 +82,7 @@ abstract class FlareRenderBox extends RenderBox {
   }
 
   Alignment get alignment => _alignment;
+
   set alignment(Alignment value) {
     if (value != _alignment) {
       _alignment = value;
@@ -83,8 +90,8 @@ abstract class FlareRenderBox extends RenderBox {
     }
   }
 
-   @override
-   bool get sizedByParent => !_useIntrinsicSize || _intrinsicSize == null;
+  @override
+  bool get sizedByParent => !_useIntrinsicSize || _intrinsicSize == null;
 
   @override
   void performLayout() {
@@ -139,7 +146,9 @@ abstract class FlareRenderBox extends RenderBox {
   AABB get aabb;
 
   void paintFlare(Canvas canvas, Mat2D viewTransform);
+
   void prePaint(Canvas canvas, Offset offset) {}
+
   void postPaint(Canvas canvas, Offset offset) {}
 
   @override
@@ -234,6 +243,7 @@ abstract class FlareRenderBox extends RenderBox {
   void advance(double elapsedSeconds);
 
   bool _isLoading = false;
+
   bool get isLoading => _isLoading;
 
   Future<void> _load() async {
@@ -260,8 +270,9 @@ abstract class FlareRenderBox extends RenderBox {
   void onUnload() {}
 
   /// Load a flare file from cache
-  Future<FlutterActor> loadFlare(String filename) async {
-    if (assetBundle == null || filename == null) {
+  Future<FlutterActor> loadFlare(FlareAnimationProvider provider) async {
+    /*
+    if (assetBundle == null ||  provider == null) {
       return null;
     }
 
@@ -273,5 +284,9 @@ abstract class FlareRenderBox extends RenderBox {
     _assets.add(asset);
     asset.ref();
     return asset.actor;
+    */
+
+    final res = await provider.loadAnimation();
+    return FlutterActor.loadFromByteData(res);
   }
 }

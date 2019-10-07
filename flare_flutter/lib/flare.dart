@@ -31,6 +31,7 @@ import 'trim_path.dart';
 
 export 'package:flare_dart/animation/actor_animation.dart';
 export 'package:flare_dart/actor_node.dart';
+export 'flare_providers.dart';
 
 abstract class FlutterActorDrawable {
   ui.BlendMode _blendMode;
@@ -735,9 +736,10 @@ class FlutterActor extends Actor {
     return actor;
   }
 
-  Future<bool> loadFromBundle(AssetBundle assetBundle, String filename) async {
-    ByteData data = await assetBundle.load(filename);
-    return super.load(data, AssetBundleContext(assetBundle, filename));
+
+  Future<bool> loadFromProvider(FlareAnimationProvider provider) async {
+    ByteData data = await provider.loadAnimation();
+    return super.load(data, provider);
   }
 
   void copyFlutterActor(FlutterActor actor) {
